@@ -1,0 +1,56 @@
+name: Update Resolvers Daily
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # todo dia 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dnsvalidator
+        run: |
+          pip install --upgrade pip
+          pip install git+https://github.com/vortexau/dnsvalidator.git
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+
+      - name: Run resolver update
+        run: |
+          chmod +x scripts/update_resolvers.sh
+          ./scripts/update_resolvers.sh
+
+      - name: Commit updated resolvers
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add resolvers.txt
+          git commit -m "chore: daily resolver update" || echo "No changes"
+          git push
+
+      - name: Create/Update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: daily-resolvers
+          name: Daily Resolvers
+          files: resolvers.txt
+          body: |
+            Auto-updated resolver list.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
