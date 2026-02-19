@@ -2,7 +2,7 @@ name: Update Resolvers Daily
 
 on:
   schedule:
-    - cron: "0 3 * * *"   # todo dia 03:00 UTC
+    - cron: "16 16 * * *"   # todo dia 03:00 UTC
   workflow_dispatch:
 
 permissions:
